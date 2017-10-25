@@ -1,0 +1,15 @@
+{
+  "name": "walker",
+  "version": "1.0.0",
+  "description": "Automated website crawler",
+  "main": "walker.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Kaspars Dambis (https://kaspars.net)",
+  "license": "MIT",
+  "dependencies": {
+    "csv": "^1.1.1",
+    "puppeteer": "^0.12.0"
+  }
+}
