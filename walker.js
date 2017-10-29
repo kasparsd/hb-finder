@@ -54,12 +54,12 @@ function logReport( filename, url, log ) {
 	// Write the CSV header first.
 	return fs.stat( filename, ( err, stats ) => {
 		if ( ! stats ) {
-			fs.appendFile( filename, logToCsvString( Object.keys( csv ) ), ( err ) => {
+			fs.appendFileSync( filename, logToCsvString( Object.keys( csv ) ), ( err ) => {
 				if ( err ) throw err;
 			} );
 		}
 
-		fs.appendFile( filename, logToCsvString( Object.values( csv ) ), ( err ) => {
+		fs.appendFileSync( filename, logToCsvString( Object.values( csv ) ), ( err ) => {
 			if ( err ) throw err;
 		} );
 	} );
