@@ -3,22 +3,23 @@ const csvParse = require('csv-parse');
 const csvStringify = require('csv-stringify');
 const fs = require('fs');
 
-function reportToCsv( report ) {
-	var csv = [];
+const serviceRules = {
+	'an.facebook.com': 'Facebook Audience Network',
+	'googletagservices.com/tag/js/gpt.js': 'Google DFP',
+	'openx.net/w/': 'OpenX',
+	'cas.criteo.com': 'Criteo',
+	'go.sonobi.com': 'Sobobi',
+	'googlesyndication.com/pagead/js/adsbygoogle.js': 'Google AdSense',
+};
 
-	// Add the header row.
-	csv.push( Object.keys( report[0] ) );
-
-	report.forEach( function( urlReport ) {
-		csv.push( Object.values( urlReport ) );
-	} );
-
-	return csv;
+if ( 'undefined' === typeof process.argv[2] ) {
+	return console.error( 'Need a CSV file of URLs to check.' );
 }
 
 function getReportId() {
-	var d = new Date();
-	var parts = [
+	let d = new Date();
+
+	return [
 		d.getFullYear(),
 		d.getMonth() + 1,
 		d.getDate(),
@@ -26,29 +27,41 @@ function getReportId() {
 		d.getHours(),
 		d.getMinutes(),
 		d.getSeconds()
-	];
-
-	return parts.join('');
+	].map( part => part.toString().padStart( 2, 0 ) ).join('');
 }
 
 function mapRequestUrl( url ) {
-	let rules = {
-		'an.facebook.com': 'Facebook Audience Network',
-		'googletagservices.com/tag/js/gpt.js': 'Google DFP',
-		'openx.net/w/': 'OpenX',
-		'cas.criteo.com': 'Criteo',
-		'go.sonobi.com': 'Sobobi',
-		'googlesyndication.com/pagead/js/adsbygoogle.js': 'Google AdSense',
-	};
-
 	// @todo Not sure how to pass url using the ES6 syntax.
-	return Object.keys( rules ).filter( function( rule ) {
+	return Object.keys( serviceRules ).filter( function( rule ) {
 		return this.url.includes( rule );
-	}, { url: url } ).map( rule => rules[ rule ] );
+	}, { url: url } ).map( rule => serviceRules[ rule ] );
 }
 
-if ( 'undefined' === typeof process.argv[2] ) {
-	return console.error( 'Need a CSV file of URLs to check.' );
+function logToCsvString( log ) {
+	return log.join(',') + "\n";
+}
+
+function logReport( filename, url, log ) {
+	let csv = {
+		'URL': url,
+	};
+
+	for ( var serviceLabel in log ) {
+		csv[ serviceLabel ] = log[ serviceLabel ] ? 1 : 0;
+	}
+
+	// Write the CSV header first.
+	return fs.stat( filename, ( err, stats ) => {
+		if ( ! stats ) {
+			fs.appendFile( filename, logToCsvString( Object.keys( csv ) ), ( err ) => {
+				if ( err ) throw err;
+			} );
+		}
+
+		fs.appendFile( filename, logToCsvString( Object.values( csv ) ), ( err ) => {
+			if ( err ) throw err;
+		} );
+	} );
 }
 
 // @todo Add validation, catch fail.
@@ -56,78 +69,68 @@ var urlCsv = process.argv[2] + '';
 
 fs.readFile( urlCsv, ( err, data ) => {
 
-	csvParse( data, (err, csv ) => {
+	csvParse( data, ( err, csv ) => {
 
 		if ( err ) {
 			throw err;
 		}
 
+		const urls = csv.map( entry => entry[0] ).filter( url => ( url.length ) );
+		const reportFilename = [ 'reports/report-', getReportId(), '.csv' ].join('');
+
 		puppeteer.launch().then( async browser => {
-			var urls = csv.map( entry => entry[0] ).filter( url => ( url.length ) );
-			var reportFilename = [ 'reports/report-', getReportId(), '.csv' ].join('');
-			var log = {};
 
-			while ( true ) {
-				var url = urls.shift();
-				var requests = [];
+			let tasks = urls.map( async url => {
 
-				if ( ! url ) {
-					break;
-				}
-
-				log[ url ] = {
-					url: url,
-					services: [],
-					stats: {}
-				};
-
+				let urlServicesFound = {};
+				let varServicesFound = {};
 				let page = await browser.newPage();
 
-				await page.on( 'request', request => {
-					requests.push( request.url );
-				});
+				// Mark all services as not found by default.
+				Object.values( serviceRules ).forEach( serviceLabel => {
+					urlServicesFound[ serviceLabel ] = false;
+				} );
 
-				log[ url ].stats = await page.goto( url ).then( response => {
+				await page.on( 'request', request => {
+					mapRequestUrl( request.url ).forEach( serviceFound => {
+						urlServicesFound[ serviceFound ] = true;
+					} );
+				} );
+
+				varServicesFound = await page.goto( url ).then( () => {
+					console.log( 'Checking:', url );
+
 					return page.evaluate( () => {
 						return {
-							is_prebid: ( window.pbjs && 'object' === typeof window.pbjs.cmd ),
-							is_dfp: ( window.googletag && 'object' === typeof window.googletag.cmd )
+							'Prebid.js': ( window.pbjs && 'object' === typeof window.pbjs.cmd ) === true,
 						};
 					} );
-				} ).catch( error => console.error( error ) );
-
-				log[ url ].services = requests.map( requestUrl => {
-					var matchedServices = mapRequestUrl( requestUrl );
-
-					if ( matchedServices.length ) {
-						return matchedServices.shift();
-					}
-
-					return false;
-				} ).filter( service => service.length );
+				} );
 
 				await page.close();
-			}
 
-			await browser.close();
-		} );
+				let found = Object.assign( urlServicesFound, varServicesFound );
 
-		console.log( log );
+				// Log it to a file.
+				logReport( reportFilename, url, found );
 
-		/*
-		var csv = reportToCsv( log );
+				return {
+					url: url,
+					services: found,
+				};
 
-		csvStringify( csv, function( error, output ) {
-			fs.writeFile( reportFilename, output, ( err ) => {
-				if ( err ) {
-					throw err;
-				}
-
-				console.log( 'Report Completed!' );
-				console.log( output );
 			} );
+
+			return Promise.all( tasks ).then( taskReport => {
+				browser.close();
+
+				return taskReport;
+			} );
+
+		} ).then( report => {
+			console.log( 'Done!' );
 		} );
-		*/
+
 	} );
 
 } );
