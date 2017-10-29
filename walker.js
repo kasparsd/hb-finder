@@ -106,7 +106,7 @@ fs.readFile( urlCsv, ( err, data ) => {
 							'Prebid.js': ( window.pbjs && 'object' === typeof window.pbjs.cmd ) === true,
 						};
 					} );
-				} );
+				} ).catch( error => console.error( error ) );
 
 				await page.close();
 
