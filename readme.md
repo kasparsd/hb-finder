@@ -1,6 +1,6 @@
-# Website Walker
+# Ad Service Detector
 
-Detect ad services used on websites using the [headless Chrome](https://developers.google.com/web/updates/2017/04/headless-chrome).
+Discover ad services used on websites using the [headless Chrome](https://developers.google.com/web/updates/2017/04/headless-chrome).
 
 ## Requirements
 
