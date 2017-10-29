@@ -10,6 +10,7 @@ const serviceRules = {
 	'cas.criteo.com': 'Criteo',
 	'go.sonobi.com': 'Sobobi',
 	'googlesyndication.com/pagead/js/adsbygoogle.js': 'Google AdSense',
+	'googletagmanager.com/gtm': 'Google Tag Manager',
 };
 
 if ( 'undefined' === typeof process.argv[2] ) {
