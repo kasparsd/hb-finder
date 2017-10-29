@@ -11,6 +11,7 @@ const serviceRules = {
 	'go.sonobi.com': 'Sobobi',
 	'googlesyndication.com/pagead/js/adsbygoogle.js': 'Google AdSense',
 	'googletagmanager.com/gtm': 'Google Tag Manager',
+	'google-analytics.com/analytics.js': 'Google Analytics',
 };
 
 if ( 'undefined' === typeof process.argv[2] ) {
