@@ -46,7 +46,7 @@ function logToCsvString( log ) {
 
 function logReport( filename, url, log ) {
 	let csv = {
-		'URL': url,
+		'URL': '"' + url + '"',
 	};
 
 	for ( var serviceLabel in log ) {
