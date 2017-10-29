@@ -106,6 +106,7 @@ fs.readFile( urlCsv, ( err, data ) => {
 					return page.evaluate( () => {
 						return {
 							'Prebid.js': ( window.pbjs && 'object' === typeof window.pbjs.cmd ) === true,
+							'Pubfood': ( window.pubfood && 'object' === typeof window.pubfood ) === true,
 						};
 					} );
 				} ).catch( error => console.error( error ) );
