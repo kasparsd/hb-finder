@@ -7,6 +7,7 @@ const serviceRules = {
 	'an.facebook.com': 'Facebook Audience Network',
 	'googletagservices.com/tag/js/gpt.js': 'Google DFP',
 	'openx.net/w/': 'OpenX',
+	'.casalemedia.com': 'Index Exchange',
 	'cas.criteo.com': 'Criteo',
 	'go.sonobi.com': 'Sobobi',
 	'googlesyndication.com/pagead/js/adsbygoogle.js': 'Google AdSense',
