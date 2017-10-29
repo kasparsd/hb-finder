@@ -1,6 +1,6 @@
 # Website Walker
 
-Crawl websites using [headless Chrome](https://developers.google.com/web/updates/2017/04/headless-chrome).
+Detect ad services used on websites using the [headless Chrome](https://developers.google.com/web/updates/2017/04/headless-chrome).
 
 ## Requirements
 
