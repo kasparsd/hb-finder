@@ -83,8 +83,10 @@ fs.readFile( urlCsv, ( err, data ) => {
 
 		puppeteer.launch().then( async browser => {
 
-			let tasks = urls.map( async url => {
+			// @todo Is there a way to do this using map or forEach?
+			for ( let u = 0; u < urls.length; u++ ) {
 
+				let url = urls[u];
 				let urlServicesFound = {};
 				let varServicesFound = {};
 				let page = await browser.newPage();
@@ -109,7 +111,7 @@ fs.readFile( urlCsv, ( err, data ) => {
 							'Pubfood': ( window.pubfood && 'object' === typeof window.pubfood ) === true,
 						};
 					} ).catch( error => console.log( url, error ) );
-				} ).catch( error => console.error( error ) );
+				} ).catch( error => console.error( 'Failed to open', url ) );
 
 				await page.close();
 
@@ -117,21 +119,11 @@ fs.readFile( urlCsv, ( err, data ) => {
 
 				// Log it to a file.
 				logReport( reportFilename, url, found );
+			}
 
-				return {
-					url: url,
-					services: found,
-				};
+			await browser.close();
 
-			} );
-
-			return Promise.all( tasks ).then( taskReport => {
-				browser.close();
-
-				return taskReport;
-			} );
-
-		} ).then( report => {
+		} ).then( () => {
 			console.log( 'Done!' );
 		} );
 
