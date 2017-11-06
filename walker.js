@@ -13,6 +13,7 @@ const serviceRules = {
 	'googlesyndication.com/pagead/js/adsbygoogle.js': 'Google AdSense',
 	'googletagmanager.com/gtm': 'Google Tag Manager',
 	'google-analytics.com/analytics.js': 'Google Analytics',
+	'amazon-adsystem.com': 'Amazon Ads',
 };
 
 if ( 'undefined' === typeof process.argv[2] ) {
