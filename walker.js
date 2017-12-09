@@ -103,10 +103,10 @@ fs.readFile( urlCsv, ( err, data ) => {
 					} );
 				} );
 
-				varServicesFound = await page.goto( url ).then( () => {
+				varServicesFound = await page.goto( url ).then( async () => {
 					console.log( 'Checking:', url );
 
-					return page.evaluate( () => {
+					return await page.evaluate( () => {
 						return {
 							'Prebid.js': ( window.pbjs && 'object' === typeof window.pbjs.cmd ) === true,
 							'Pubfood': ( window.pubfood && 'object' === typeof window.pubfood ) === true,
